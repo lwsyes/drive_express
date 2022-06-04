@@ -45,6 +45,7 @@ module.exports = {
             if (fileError) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             let [_, error] = await catchError(MysqlQuery(`UPDATE disk_user a,( SELECT drive_used AS used FROM disk_user ) b SET drive_used = ( b.used - ${file_size} ) WHERE a.drive_id = ${drive_id}`))
             if (error) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
+            if (!file_size) return resolve({ "status": 200, "message": "删除成功" })
             let [__, deleteError] = await catchError(MysqlQuery(`delete from drive where file_id='${file_id}' and drive_id=${drive_id}`))
             if (deleteError) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             resolve({ "status": 200, "message": "删除成功" })

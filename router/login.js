@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const { userLogin, userRegister, insertSqlHistory } = require('../middleware/login')
+const { isLinited, setState } = require('../middleware/limitCount')
 const { modifyCipher } = require('../middleware/user')
 const { sendEmail } = require('../util/email')
 const { map } = require('../util/map')
@@ -11,6 +12,7 @@ router.post('/modifyCipher', function (req, res) {
     modifyCipher(req.body).then(data => res.send(data))
         .catch(err => res.send(err))
 });
+
 function getRandom() {
     return parseInt(Math.random() * 9000 + 1000)
 }
@@ -24,6 +26,7 @@ function logIn(req, res) {
 
 function sendVerifyCode(req, res) {
     let username = req.query.username
+    if (isLinited(username)) return res.send({ state: -1, message: '今日发送次数超过上限！' })
     let pwd = getRandom()
     let timer = null
     let user = username.split('@')[0];
@@ -31,7 +34,11 @@ function sendVerifyCode(req, res) {
     info && (timer = info.timer) && clearTimeout(timer)
     timer = setTimeout(() => { map.delete(user) }, 5 * 1000 * 60)
     map.set(user, { pwd, timer })
-    sendEmail(username, pwd).then(data => res.send(data), err => res.send(err))
+    sendEmail(username, pwd).then(data => {
+        res.send(data)
+        setState(username)
+    }, err => res.send(err))
+    pwd = null
 }
 
 async function register(req, res) {

@@ -138,6 +138,7 @@ function getMusicInfo(music_path) {
     });
 }
 
+// 合并文件
 function mergeFile(name, file_type) {
     return new Promise(async (resolve, reject) => {
         let fname = name.split('.')[0]
@@ -160,13 +161,14 @@ function mergeFile(name, file_type) {
                     if (screenError) return reject({ 'status': -1, 'message': '系统异常，稍后尝试' })
                     resolve({ file_path, urls })
                 } else {
-                    resolve({ urls, file_path: null })
+                    resolve({ urls, file_path: urls.url })
                 }
             }
         })
     })
 }
 
+// 检测文件是否上传过
 function checkedFileIsLoaded({ file_type, file_id }) {
     return new Promise(async (resolve, reject) => {
         let [data, seleError] = await catchError(MysqlQuery(`SELECT COUNT(file_id) AS size FROM drive WHERE type = '${file_type}' AND file_id = '${file_id}'`))

@@ -27,8 +27,7 @@ module.exports = {
                     reject({ "status": -1, "message": "系统异常，稍后尝试" })
                 });
                 res.on('end', () => {
-                    let str = chunk.toString().trim()
-                    resolve(str.slice(0, str.length - 1))
+                    resolve(chunk.toString())
                 })
             });
             req.end();

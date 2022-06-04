@@ -38,12 +38,10 @@ module.exports = {
     WHITE_LIST: ['/api'],//验证黑名单,
     DOMAIN: process.env.DOMAIN || 'https://drive.xiezy.top',//网站域名
     DEFAULT_AVATAR: 'https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png',
-    EVERY_DAY_WORD: 'https://v.api.aa1.cn/api/pyq/',
+    EVERY_DAY_WORD: 'https://saying.api.azwcl.com/saying/get',
     ERROR_LOG: path.resolve(__dirname, 'ErrorLog'),//错误日志地址
     UPLOAD_DIR: path.resolve(__dirname, 'public/upload'), //上传地址
     SCREENSHOT_DIR: path.resolve(__dirname, 'public/screenShot'), //视频缩略图地址
     MUSICINFO: path.resolve(__dirname, 'public/musicInfo'), //音乐封面
     HEADIMG_DIR: path.resolve(__dirname, 'public/headImg') //用户头像上传
 }
-
-console.log(process.env.DOMAIN);
