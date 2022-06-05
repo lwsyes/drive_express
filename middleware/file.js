@@ -122,7 +122,7 @@ module.exports = {
             let sql = `select file_id,file_name,parent_file_id,type,file_size,isCollection,download_url,cover_url,created_at,updated_at from drive where drive_id='${drive_id}' and type like 'image%'`
             let [data, dataError] = await catchError(MysqlQuery(sql))
             if (dataError) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
-            resolve({ "status": 200, "message": "查询成功", data })
+            resolve({ "status": 200, "message": "查询成功", data, DOMAIN })
         })
     },
     modifyFile({ drive_id, file_id, filename, updated_at, type }) {
