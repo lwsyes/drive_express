@@ -5,7 +5,7 @@
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
-    "dev": "nodemon index.js http://localhost:3000",
+    "dev": "nodemon app.js http://localhost:3000",
     "start": "nodemon index.js https://drive.xiezy.top",
     "pkg": "pkg -t win package.json"
   },
@@ -22,6 +22,7 @@
     "express": "^4.18.1",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^10.1.0",
+    "images": "^3.2.4",
     "jsmediatags": "^3.9.7",
     "jsonwebtoken": "^8.5.1",
     "multiparty": "^4.2.3",

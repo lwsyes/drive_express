@@ -22,7 +22,7 @@ module.exports = {
     //邮箱模板
     EMAIL_VERIFY_CODE_OPTION: {
         from: '沐雨凉年<2973912389@qq.com>',
-        subject: '',
+        subject: '登录验证码',
         text: '你的验证码是：{verifyCode}，有效期5分钟。',
         html: ''
     },
@@ -37,11 +37,11 @@ module.exports = {
     JWTKEY: 'nsodivnjcjksxzfb',//jwt加盐字符串
     WHITE_LIST: ['/api'],//验证黑名单,
     DOMAIN: process.env.DOMAIN || 'https://drive.xiezy.top',//网站域名
-    DEFAULT_AVATAR: 'https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png',
-    EVERY_DAY_WORD: 'https://saying.api.azwcl.com/saying/get',
+    DEFAULT_AVATAR: 'https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png',//用户默认头像
+    EVERY_DAY_WORD: 'https://saying.api.azwcl.com/saying/get', //每日一词
     ERROR_LOG: path.resolve(__dirname, 'ErrorLog'),//错误日志地址
     UPLOAD_DIR: path.resolve(__dirname, 'public/upload'), //上传地址
-    SCREENSHOT_DIR: path.resolve(__dirname, 'public/screenShot'), //视频缩略图地址
+    SCREENSHOT_DIR: path.resolve(__dirname, 'public/screenShot'), //视频封面图地址
     MUSICINFO: path.resolve(__dirname, 'public/musicInfo'), //音乐封面
     HEADIMG_DIR: path.resolve(__dirname, 'public/headImg') //用户头像上传
 }

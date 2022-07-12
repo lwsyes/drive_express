@@ -1,3 +1,7 @@
+/* 
+dev mode
+*/
+
 const express = require("express")
 const app = express()
 const history = require('connect-history-api-fallback')
@@ -5,12 +9,12 @@ const { join } = require('path')
 const { author } = require("./middleware/authorization")
 const { PORT } = require("./config")
 
-//app.use(history());
+app.use(history());
 
-// app.all('*', (req, res, next) => {
-//     res.header("Access-Control-Allow-Origin", "*")
-//     next()
-// })
+app.all('*', (req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*")
+    next()
+})
 app.use(express.static(join(__dirname, 'public')));
 app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: false, limit: 5 * 1024 * 1024 }))

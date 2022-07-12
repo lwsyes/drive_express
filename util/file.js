@@ -1,6 +1,7 @@
 const { unlink, writeFile } = require('fs').promises
-const { join } = require('path')
+const { join, extname } = require('path')
 const fse = require('fs-extra')
+const images = require('images')
 const crypto = require('crypto')
 const ffmpeg = require('fluent-ffmpeg')
 const jsmediatags = require('jsmediatags')
@@ -11,6 +12,7 @@ const { HEADIMG_DIR, UPLOAD_DIR, SCREENSHOT_DIR, DOMAIN, MUSICINFO } = require('
 
 // 删除文件
 async function delFile(filePath) {
+    if (!filePath) return
     let [_, error] = await catchError(unlink(filePath))
     if (error) console.log(error);
 }
@@ -77,17 +79,17 @@ function streamMergeRecursive(chunk_path = [], fileWriteStream, chunk_dri, cb) {
     })
 }
 
-// 视频缩略图
+// 视频封面图
 function screenshot(file_url) {
-    let screenshotname = `xiezy${new Date().getTime()}.png`
-    return new Promise((resolve, reject) => {
+    let screenshotname = `xiezy${new Date().getTime()}.jpg`
+    return new Promise(resolve => {
         ffmpeg(file_url)
             .screenshots({
                 count: 1,
                 filename: screenshotname,
-                folder: SCREENSHOT_DIR,
-                size: '1280x720'
+                folder: SCREENSHOT_DIR
             }).on('end', () => {
+                compressImage(join(SCREENSHOT_DIR, screenshotname))
                 resolve({
                     name: screenshotname,
                     folder: SCREENSHOT_DIR,
@@ -115,7 +117,7 @@ function getMD5(str) {
 //获取音乐信息
 function getMusicInfo(music_path) {
     return new Promise((resolve, reject) => {
-        let musicInfoName = `xiezy${new Date().getTime()}.png`
+        let musicInfoName = `xiezy${new Date().getTime()}.jpg`
         new jsmediatags.Reader(music_path)
             .setTagsToRead(['title', 'artist', 'picture', 'lyrics'])
             .read({
@@ -123,7 +125,8 @@ function getMusicInfo(music_path) {
                     try {
                         const { data, format } = tag.tags.picture;
                         let buffer = Buffer.from(data)
-                        fs.writeFileSync(join(MUSICINFO, musicInfoName), buffer)
+                        compressImage(buffer, join(MUSICINFO, musicInfoName))
+                        // fs.writeFileSync(join(MUSICINFO, musicInfoName), buffer)
                         resolve({ file_path: 'musicInfo/' + musicInfoName })
                     } catch (error) {
                         resolve({ file_path: 'musicInfo/audio.png' })
@@ -144,12 +147,18 @@ function mergeFile(name, file_type) {
         let fname = name.split('.')[0]
         let chunk_dri = join(UPLOAD_DIR, fname)
         let chunks = await fse.readdir(chunk_dri)
-        let WriteStream = fs.createWriteStream(join(UPLOAD_DIR, name));
+        let fileLastPath = join(UPLOAD_DIR, name)
+        let result = await checkLocalFileExit(fileLastPath)
+        if (result) {
+            name = Math.random().toFixed(3) + '_' + name
+            fileLastPath = join(UPLOAD_DIR, name)
+        }
+        let WriteStream = fs.createWriteStream(fileLastPath);
         chunks.sort((a, b) => a - b)
         streamMergeRecursive(chunks, WriteStream, chunk_dri, async a => {
             if (a) {
                 let urls = {
-                    local_url: join(UPLOAD_DIR, name).replace(/\\/g, '\\\\'),
+                    local_url: fileLastPath.replace(/\\/g, '\\\\'),
                     url: 'upload/' + name
                 }
                 if (file_type.includes('audio')) {
@@ -168,6 +177,21 @@ function mergeFile(name, file_type) {
     })
 }
 
+/* 
+    检测文件是否存在
+    return code 
+                1 存在
+                0 不存在
+*/
+function checkLocalFileExit(file_path) {
+    return new Promise(resolve => {
+        fs.access(file_path, fs.constants.F_OK, (err) => {
+            if (err) return resolve(0)
+            resolve(1)
+        });
+    })
+}
+
 // 检测文件是否上传过
 function checkedFileIsLoaded({ file_type, file_id }) {
     return new Promise(async (resolve, reject) => {
@@ -176,9 +200,35 @@ function checkedFileIsLoaded({ file_type, file_id }) {
         console.log(data[0].size);
         if (data[0].size >= 1) return resolve({ "status": 200 })
     })
-
 }
 
+function getRandom(min = 0, max = 0) {
+    return (Math.random() * (max - min) + min)
+}
+
+function getAlterId(originName) {
+    let index = originName.lastIndexOf('.')
+    let fileExtname = extname(originName)
+    let alter = String(Date.now()).slice(-4)
+    return originName.slice(0, index) + '_' + alter + fileExtname
+}
+
+function compressImage(image, image_path) {
+    let save_image_path = ''
+    if (typeof image == 'string') {
+        let image_type = extname(image)
+        save_image_path = image
+        if (image == '.png') save_image_path = image.split(image_type)[0] + '.jpg'
+    } else {
+        save_image_path = image_path
+    }
+    images(image).save(save_image_path, { quality: 50 })
+}
+
+
+function getFileExtname(fileName) {
+    return extname(fileName).slice(1)
+}
 
 
 module.exports = {
@@ -186,9 +236,11 @@ module.exports = {
     getMD5,
     upload,
     uploadFile,
+    getAlterId,
     screenshot,
     getFileMD5,
     mergeFile,
     getMusicInfo,
+    getFileExtname,
     checkedFileIsLoaded
 }

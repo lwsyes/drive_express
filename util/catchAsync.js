@@ -10,11 +10,11 @@ function saveErrorLog(err) {
 
 function transformErr(err) {
     if (err instanceof Error) {
-        return `${format("YYYY-MM-DD hh:mm:ss")}: ${err}\n`
+        return `${format("YYYY-MM-DD hh:mm:ss")} ${err}\n`
     } else if (typeof err == 'object') {
-        return `${format("YYYY-MM-DD hh:mm:ss")}: ${JSON.stringify(err)}\n`
+        return `${format("YYYY-MM-DD hh:mm:ss")} ${JSON.stringify(err)}\n`
     } else {
-        return `${format("YYYY-MM-DD hh:mm:ss")}: ${err}\n`
+        return `${format("YYYY-MM-DD hh:mm:ss")} ${err}\n`
     }
 }
 function catchError(promise) {
