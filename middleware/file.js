@@ -63,7 +63,7 @@ module.exports = {
 
             // 查到文件信息
             if (fileData.length) {
-                let { file_size, local_url } = fileData
+                let { file_size, local_url } = fileData[0]
 
                 // 删除数据库中的数据
                 let [__, deleteError] = await catchError(MysqlQuery(`delete from drive where file_id='${file_id}' and drive_id=${drive_id}`))
