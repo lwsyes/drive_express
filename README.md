@@ -8,3 +8,5 @@
 > 2. 安装依赖 npm i
 > 3. 创建数据库，mysql目录下有sql文件，运行sql文件，会创建项目需要的数据库及解构。
 > 4. 修改config.js配置项
+> 5. npm run dev 或者 npm run start
+
