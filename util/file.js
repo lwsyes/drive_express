@@ -242,7 +242,6 @@ function getFileInfo(filePath) {
         fs.stat(filePath, async function (err, stats) {
             let { size } = stats
             let fileType = await FileType.fromFile(filePath);
-            console.log(fileType);
             resolve({
                 size,
                 ...fileType,
