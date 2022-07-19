@@ -1,6 +1,7 @@
 const { catchError } = require('../util/catchAsync')
 const MysqlQuery = require('../mysql')
-const { uploadFile, mergeFile, delFile, getMD5, getAlterId, getFileExtname } = require('../util/file')
+const { format } = require('../util/date')
+const { uploadFile, mergeFile, getMD5, getAlterId, getFileInfo, getFileCoverPath } = require('../util/file')
 const { DOMAIN } = require('../config')
 
 module.exports = {
@@ -13,16 +14,23 @@ module.exports = {
             resolve({ "status": 200, "message": "获取成功", "fileList": data, DOMAIN })
         })
     },
-    upload_action({ file_name, drive_id, file_id, parent_file_id = 'root', parent_folder, file_type, file_size, created_at, updated_at }) {
+    upload_action({ file_name, drive_id, file_id, parent_file_id = 'root', parent_folder }) {
         return new Promise(async (resolve, reject) => {
-            if (!file_type || file_type == undefined) file_type = getFileExtname(file_name)
-            if (!drive_id || !file_name || !parent_file_id || !parent_folder || !file_id || !file_type || file_size == undefined || !created_at || !updated_at) return reject({ "status": -1, "message": "参数不能为空" })
+            let created_at = format("YYYY-MM-DD hh:mm:ss");
+            let updated_at = created_at
+            if (!drive_id || !file_name || !parent_file_id || !parent_folder || !file_id || !created_at || !updated_at) return reject({ "status": -1, "message": "参数不能为空" })
 
             // 等待文件合并
-            let [{ file_path, urls: { url, local_url } }, error] = await catchError(mergeFile(file_name, file_type))
+            let [{ url, local_url }, error] = await catchError(mergeFile(file_name))
             if (error) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
 
             // 查询当前文件夹下是否存在相同名的数据
+            let { mime: file_type, size: file_size } = await getFileInfo(local_url)
+            let [file_path, coverErr] = await catchError(getFileCoverPath(file_type, local_url))
+            if (coverErr) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
+            if (!file_path) file_path = url
+
+
             let [data, queryErr] = await catchError(MysqlQuery(`select file_name from drive where drive_id = ${drive_id} and parent_file_id = '${parent_file_id}' and file_name = '${file_name}'`))
             if (queryErr) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             if (data.length > 0) file_name = getAlterId(file_name)
@@ -85,8 +93,11 @@ module.exports = {
             }
         })
     },
-    usermkDir({ drive_id, parent_file_id = 'root', file_id, filename, type, created_at, updated_at }) {
+    usermkDir({ drive_id, parent_file_id = 'root', file_id, filename }) {
         return new Promise(async (resolve, reject) => {
+            let created_at = format("YYYY-MM-DD hh:mm:ss");
+            let updated_at = created_at
+            let type = 'folder'
             if (!drive_id || !file_id || !filename || !type || !created_at || !updated_at) return reject({ "status": -1, "message": "参数不能为空" })
 
             // 数据库增加数据

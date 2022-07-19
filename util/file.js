@@ -7,6 +7,7 @@ const ffmpeg = require('fluent-ffmpeg')
 const jsmediatags = require('jsmediatags')
 const multiparty = require('multiparty')
 const fs = require('fs');
+const FileType = require('file-type');
 const { catchError } = require('../util/catchAsync')
 const { HEADIMG_DIR, UPLOAD_DIR, SCREENSHOT_DIR, DOMAIN, MUSICINFO } = require('../config')
 
@@ -157,23 +158,29 @@ function mergeFile(name, file_type) {
         chunks.sort((a, b) => a - b)
         streamMergeRecursive(chunks, WriteStream, chunk_dri, async a => {
             if (a) {
-                let urls = {
+                resolve({
                     local_url: fileLastPath.replace(/\\/g, '\\\\'),
                     url: 'upload/' + name
-                }
-                if (file_type.includes('audio')) {
-                    let [{ file_path }, error] = await catchError(getMusicInfo(urls.local_url))
-                    if (error) return reject({ 'status': -1, 'message': '系统异常，稍后尝试' })
-                    resolve({ file_path, urls })
-                } else if (file_type.includes('video')) {
-                    let [{ screenshot_path: file_path }, screenError] = await catchError(screenshot(urls.local_url))
-                    if (screenError) return reject({ 'status': -1, 'message': '系统异常，稍后尝试' })
-                    resolve({ file_path, urls })
-                } else {
-                    resolve({ urls, file_path: urls.url })
-                }
+                })
             }
         })
+    })
+}
+
+
+function getFileCoverPath(file_type, local_url) {
+    return new Promise(async (resolve, reject) => {
+        if (file_type.includes('audio')) {
+            let [{ file_path }, error] = await catchError(getMusicInfo(local_url))
+            if (error) return reject({ 'status': -1, 'message': '系统异常，稍后尝试' })
+            resolve(file_path)
+        } else if (file_type.includes('video')) {
+            let [{ screenshot_path }, screenError] = await catchError(screenshot(local_url))
+            if (screenError) return reject({ 'status': -1, 'message': '系统异常，稍后尝试' })
+            resolve(screenshot_path)
+        } else if (file_type.includes('image')) {
+            resolve('')
+        }
     })
 }
 
@@ -230,6 +237,20 @@ function getFileExtname(fileName) {
     return extname(fileName).slice(1)
 }
 
+function getFileInfo(filePath) {
+    return new Promise((resolve, reject) => {
+        fs.stat(filePath, async function (err, stats) {
+            let { size } = stats
+            let fileType = await FileType.fromFile(filePath);
+            resolve({
+                size,
+                ...fileType,
+                isFile: stats.isFile(),
+                isDirectory: stats.isDirectory()
+            })
+        })
+    })
+}
 
 module.exports = {
     delFile,
@@ -240,7 +261,9 @@ module.exports = {
     screenshot,
     getFileMD5,
     mergeFile,
+    getFileInfo,
     getMusicInfo,
     getFileExtname,
+    getFileCoverPath,
     checkedFileIsLoaded
 }
