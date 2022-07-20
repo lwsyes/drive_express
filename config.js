@@ -16,7 +16,7 @@ module.exports = {
         secure: true,
         auth: {
             user: 'xiezyxyz@qq.com',
-            pass: 'wonywjwhayasdfed'
+            pass: 'xpihbiucaqhrddfi'
         }
     },
     //邮箱模板

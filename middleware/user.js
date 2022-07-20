@@ -14,7 +14,7 @@ module.exports = {
     modifyNick(nickname, drive_id) {
         return new Promise(async (resolve, reject) => {
             if (!nickname || !drive_id) return reject({ "status": -1, "message": "参数不能为空" })
-            let sql = `update disk_user set nickname='${nickname}' where userId=${drive_id}`
+            let sql = `update disk_user set nickname='${nickname}' where drive_id=${drive_id}`
             let [_, error] = await catchError(MysqlQuery(sql))
             if (error) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             resolve({ "status": 200, "message": "修改成功" })
