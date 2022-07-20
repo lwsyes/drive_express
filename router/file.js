@@ -6,6 +6,7 @@ const { getFileList, upload_action,
     getUserUsedDrive, searchFile, searchCollection,
     setCollection, getPhoto, modifyFile,
     searchFolder, moveFile,
+    fileIsLoaded,
     getFileTotal, getFileDownloadUrl
 } = require('../middleware/file')
 
@@ -92,7 +93,7 @@ router.post('/getCollection', (req, res) => {
 
 // 设置收藏
 router.post('/setCollection', (req, res) => {
-    setCollection(req.body).then(data => res.send(data))
+    fileIsLoaded(req.body).then(data => res.send(data))
         .catch(err => res.send(err))
 })
 
@@ -109,6 +110,11 @@ router.post('/getFileTotal', (req, res) => {
 
 router.get('/getFileDownloadUrl', (req, res) => {
     getFileDownloadUrl(req.query).then(data => res.send(data))
+        .catch(err => res.send(err))
+})
+
+router.post('/getFileIsLoaded', (req, res) => {
+    fileIsLoaded(req.body).then(data => res.send(data))
         .catch(err => res.send(err))
 })
 

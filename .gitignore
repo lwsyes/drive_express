@@ -4,3 +4,4 @@ node_modules
 /ErrorLog
 /temp
 /public
+config copy.js

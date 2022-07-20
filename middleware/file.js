@@ -1,7 +1,8 @@
 const { catchError } = require('../util/catchAsync')
 const MysqlQuery = require('../mysql')
 const { format } = require('../util/date')
-const { uploadFile, mergeFile, getMD5, getAlterId, getFileInfo, getFileCoverPath } = require('../util/file')
+const { uploadFile, mergeFile, getMD5, getAlterId, getFileInfo,
+    getFileCoverPath, createFileHashMD5 } = require('../util/file')
 const { DOMAIN } = require('../config')
 
 module.exports = {
@@ -34,13 +35,18 @@ module.exports = {
             let [data, queryErr] = await catchError(MysqlQuery(`select file_name from drive where drive_id = ${drive_id} and parent_file_id = '${parent_file_id}' and file_name = '${file_name}'`))
             if (queryErr) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             if (data.length > 0) file_name = getAlterId(file_name)
+
+            // 计算文件md5值
+            let [file_hash, hashErr] = await catchError(createFileHashMD5(local_url))
+            if (hashErr) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
+
             // 插入新的数据
-            let sql = `insert into drive (drive_id,file_id,file_name,parent_file_id,type,created_at,updated_at,file_size,download_url,local_url,cover_url,status,parent_folder) values (${drive_id},'${file_id}','${file_name}','${parent_file_id}','${file_type}','${created_at}','${updated_at}','${file_size}','${url}','${local_url}','${file_path}','','${parent_folder}');`
+            let sql = `insert into drive (drive_id,file_id,file_name,parent_file_id,type,created_at,updated_at,file_size,download_url,local_url,cover_url,status,parent_folder,file_hash) values (${drive_id},'${file_id}','${file_name}','${parent_file_id}','${file_type}','${created_at}','${updated_at}','${file_size}','${url}','${local_url}','${file_path}','','${parent_folder}','${file_hash}');`
             let [_, insertError] = await catchError(MysqlQuery(sql))
             if (insertError) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
 
             // 更新用户储存空间信息
-            let [___, updateError] = await catchError(MysqlQuery(`UPDATE disk_user a,( SELECT drive_used AS used FROM disk_user ) b SET drive_used = ( b.used + ${file_size} ) WHERE a.drive_id = ${drive_id}`))
+            let [___, updateError] = await catchError(MysqlQuery(`UPDATE disk_user a,( SELECT drive_used AS used FROM disk_user WHERE drive_id = ${drive_id} ) b SET drive_used = ( b.used + ${file_size} ) WHERE a.drive_id = ${drive_id}`))
             if (updateError) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             resolve({ "status": 200, "message": "上传成功" })
         })
@@ -80,7 +86,7 @@ module.exports = {
 
                 // 更新删除文件后用户存储空间信息
                 if (!file_size) return resolve({ "status": 200, "message": "删除成功" })
-                let [_, error] = await catchError(MysqlQuery(`UPDATE disk_user a,( SELECT drive_used AS used FROM disk_user ) b SET drive_used = ( b.used - ${file_size} ) WHERE a.drive_id = ${drive_id}`))
+                let [_, error] = await catchError(MysqlQuery(`UPDATE disk_user a,( SELECT drive_used AS used FROM disk_user WHERE drive_id = ${drive_id} ) b SET drive_used = ( b.used - ${file_size} ) WHERE a.drive_id = ${drive_id}`))
                 if (error) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
 
                 // 删除本地文件
@@ -219,6 +225,15 @@ module.exports = {
             let [data, error] = await catchError(MysqlQuery(sql))
             if (error) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             resolve({ "status": 200, "message": "获取成功", total: data[0].total })
+        })
+    },
+    fileIsLoaded({ drive_id, file_hash }) {
+        return new Promise(async (resolve, reject) => {
+            if (!drive_id || !file_hash) return reject({ "status": -1, "message": "参数不能为空" })
+            let sql = `SELECT * FROM drive WHERE drive_id = ${drive_id} AND file_hash = '${file_hash}'`
+            let [data, error] = await catchError(MysqlQuery(sql))
+            if (error) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
+            resolve({ "status": 200, isLoaded: true })
         })
     }
 }

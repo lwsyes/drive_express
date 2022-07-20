@@ -143,7 +143,7 @@ function getMusicInfo(music_path) {
 }
 
 // 合并文件
-function mergeFile(name, file_type) {
+function mergeFile(name) {
     return new Promise(async (resolve, reject) => {
         let fname = name.split('.')[0]
         let chunk_dri = join(UPLOAD_DIR, fname)
@@ -237,6 +237,28 @@ function getFileExtname(fileName) {
     return extname(fileName).slice(1)
 }
 
+
+function createFileHashMD5(filePath) {
+    //从文件创建一个可读流
+    return new Promise((resolve, reject) => {
+        const stream = fs.createReadStream(filePath);
+        const fsHash = crypto.createHash('md5');
+
+        stream.on('data', function (chunk) {
+            fsHash.update(chunk);
+        });
+
+        stream.on('end', function () {
+            const md5 = fsHash.digest('hex');
+            resolve(md5);
+        });
+        stream.on('error', (err) => {
+            reject(err)
+        })
+    })
+}
+
+
 function getFileInfo(filePath) {
     return new Promise((resolve, reject) => {
         fs.stat(filePath, async function (err, stats) {
@@ -252,6 +274,7 @@ function getFileInfo(filePath) {
     })
 }
 
+
 module.exports = {
     delFile,
     getMD5,
@@ -264,6 +287,7 @@ module.exports = {
     getFileInfo,
     getMusicInfo,
     getFileExtname,
+    createFileHashMD5,
     getFileCoverPath,
     checkedFileIsLoaded
 }
