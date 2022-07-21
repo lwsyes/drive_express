@@ -88,7 +88,6 @@ router.post('/getFolder', (req, res) => {
 router.post('/getCollection', (req, res) => {
     searchCollection(req.body).then(data => res.send(data))
         .catch(err => res.send(err))
-
 })
 
 // 设置收藏
