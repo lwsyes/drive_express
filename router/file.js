@@ -93,7 +93,7 @@ router.post('/getCollection', (req, res) => {
 
 // 设置收藏
 router.post('/setCollection', (req, res) => {
-    fileIsLoaded(req.body).then(data => res.send(data))
+    setCollection(req.body).then(data => res.send(data))
         .catch(err => res.send(err))
 })
 

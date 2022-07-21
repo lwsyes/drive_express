@@ -113,12 +113,13 @@ module.exports = {
             resolve({ "status": 200, "message": "创建成功", data })
         })
     },
-    moveFile({ drive_id, parent_file_id, updated_at, file_id }) {
+    moveFile({ drive_id, parent_file_id, file_id, parent_folder }) {
         return new Promise(async (resolve, reject) => {
-            if (!drive_id || !parent_file_id || !updated_at || !file_id) return reject({ "status": -1, "message": "参数不能为空" })
+            let updated_at = format("YYYY-MM-DD hh:mm:ss");
+            if (!drive_id || !parent_file_id || !updated_at || !file_id || !parent_folder) return reject({ "status": -1, "message": "参数不能为空" })
 
             // 更新数据库对应文件的存储路径
-            let sql = `update drive set parent_file_id='${parent_file_id}',updated_at='${updated_at}' where drive_id=${drive_id} and file_id='${file_id}'`
+            let sql = `update drive set parent_file_id='${parent_file_id}',updated_at='${updated_at}',parent_folder='${parent_folder}' where drive_id=${drive_id} and file_id='${file_id}'`
             let [_, dataError] = await catchError(MysqlQuery(sql))
             if (dataError) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             resolve({ "status": 200, "message": "修改成功" })
@@ -190,8 +191,9 @@ module.exports = {
             resolve({ "status": 200, "message": "查询成功", data, DOMAIN })
         })
     },
-    modifyFile({ drive_id, file_id, filename, updated_at, type }) {
+    modifyFile({ drive_id, file_id, filename, type }) {
         return new Promise(async (resolve, reject) => {
+            let updated_at = format("YYYY-MM-DD hh:mm:ss");
             if (!drive_id || !file_id || !filename || !updated_at || !type) return reject({ "status": -1, "message": "参数不能为空" })
             let new_file_id = getMD5(filename)
             let sql = `update drive set file_name='${filename}',updated_at='${updated_at}',file_id='${new_file_id}' where drive_id=${drive_id} and file_id='${file_id}'`
