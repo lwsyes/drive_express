@@ -27,15 +27,17 @@ module.exports = {
 
             // 查询当前文件夹下是否存在相同名的数据
             let { mime: file_type, size: file_size } = await getFileInfo(local_url)
+
             let [file_path, coverErr] = await catchError(getFileCoverPath(file_type, local_url))
+            console.log('url')
             if (coverErr) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             if (!file_path) file_path = url
-
 
             let [data, queryErr] = await catchError(MysqlQuery(`select file_name from drive where drive_id = ${drive_id} and parent_file_id = '${parent_file_id}' and file_name = '${file_name}'`))
             if (queryErr) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             if (data.length > 0) file_name = getAlterId(file_name)
 
+            console.log('file_name')
             // 计算文件md5值
             let [file_hash, hashErr] = await catchError(createFileHashMD5(local_url))
             if (hashErr) return reject({ "status": -1, "message": "系统异常，稍后尝试" })

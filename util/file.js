@@ -170,6 +170,7 @@ function mergeFile(name) {
 
 function getFileCoverPath(file_type, local_url) {
     return new Promise(async (resolve, reject) => {
+        console.log(file_type, local_url);
         if (file_type.includes('audio')) {
             let [{ file_path }, error] = await catchError(getMusicInfo(local_url))
             if (error) return reject({ 'status': -1, 'message': '系统异常，稍后尝试' })
@@ -178,7 +179,7 @@ function getFileCoverPath(file_type, local_url) {
             let [{ screenshot_path }, screenError] = await catchError(screenshot(local_url))
             if (screenError) return reject({ 'status': -1, 'message': '系统异常，稍后尝试' })
             resolve(screenshot_path)
-        } else if (file_type.includes('image')) {
+        } else {
             resolve('')
         }
     })
