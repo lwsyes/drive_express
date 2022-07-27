@@ -29,7 +29,6 @@ module.exports = {
             let { mime: file_type, size: file_size } = await getFileInfo(local_url)
 
             let [file_path, coverErr] = await catchError(getFileCoverPath(file_type, local_url))
-            console.log('url')
             if (coverErr) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             if (!file_path) file_path = url
 
@@ -37,7 +36,6 @@ module.exports = {
             if (queryErr) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
             if (data.length > 0) file_name = getAlterId(file_name)
 
-            console.log('file_name')
             // 计算文件md5值
             let [file_hash, hashErr] = await catchError(createFileHashMD5(local_url))
             if (hashErr) return reject({ "status": -1, "message": "系统异常，稍后尝试" })
